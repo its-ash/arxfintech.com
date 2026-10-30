@@ -10,7 +10,7 @@ const year = new Date().getFullYear()
     <div class="shell grid gap-12 py-16 md:grid-cols-[1.3fr_repeat(4,1fr)]">
       <div>
         <NuxtLink to="/" class="inline-flex" aria-label="ARX Fintech home">
-          <img src="/logo.png" alt="ARX Fintech" width="640" height="253" loading="lazy" class="h-11 w-auto" />
+          <BrandLogo class="h-11" />
         </NuxtLink>
         <p class="mt-4 max-w-xs text-sm leading-relaxed text-ink-300">
           Company setup, trading technology and digital tools for brokers, from one partner.

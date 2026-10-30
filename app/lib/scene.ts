@@ -113,6 +113,7 @@ uniform float uMouseOn;
 uniform vec3 uBase;
 uniform vec3 uAccent;
 uniform vec3 uBear;
+uniform float uSat;
 attribute vec3 aCandle;
 attribute vec3 aRing;
 attribute vec3 aWave;
@@ -165,11 +166,19 @@ void main() {
   vec3 pw = wavePos(h);
   vec3 p = position * w0 + aCandle * w1 + ringPos() * w2 + pw * w3 + aLogo * w4;
 
-  vec3 cGlobe = mix(uBase, uAccent, step(0.93, aSeed));
+  float isRed = step(0.15, aLogoCol.r - max(aLogoCol.g, aLogoCol.b));
+  float isGreen = step(0.1, aLogoCol.g - max(aLogoCol.r, aLogoCol.b));
+  float beat = 0.5 + 0.5 * cos(uTime * 3.92699);
+  float pr = uTime > 0.0 ? mix(0.12, 1.0, beat) : 1.0;
+  float pg = uTime > 0.0 ? mix(0.12, 1.0, 1.0 - beat) : 1.0;
+  vec3 cLogo = aLogoCol * mix(1.0, pr * 1.5, isRed) * mix(1.0, pg * 1.5, isGreen);
+
+  vec3 cGlobe = mix(uBase, uAccent, step(0.88, aSeed));
   vec3 cCandle = mix(uBear, uAccent, aTone);
-  vec3 cRing = mix(uBase, uAccent, 0.3 + 0.6 * step(0.55, fract(aSeed * 7.0)));
-  vec3 cWave = mix(uBase * 0.55, uAccent, smoothstep(-0.25, 0.6, h));
-  vec3 col = cGlobe * w0 + cCandle * w1 + cRing * w2 + cWave * w3 + aLogoCol * w4;
+  vec3 cRing = mix(uBase, uAccent, 0.35 + 0.6 * step(0.5, fract(aSeed * 7.0)));
+  vec3 cWave = mix(uBase * 0.5, uAccent, smoothstep(-0.3, 0.5, h));
+  vec3 col = cGlobe * w0 + cCandle * w1 + cRing * w2 + cWave * w3 + cLogo * w4;
+  col = max(mix(vec3(dot(col, vec3(0.299, 0.587, 0.114))), col, uSat), 0.0);
 
   float swirl = sin(ts * 3.14159);
   vec3 q = p * 0.45 + vec3(0.0, 0.0, uTime * 0.06);
@@ -202,6 +211,7 @@ void main() {
 
 const pointsFrag = /* glsl */ `
 uniform float uOpacity;
+uniform float uBoost;
 varying vec3 vColor;
 varying float vAlpha;
 
@@ -209,7 +219,7 @@ void main() {
   float d = length(gl_PointCoord - 0.5);
   if (d > 0.5) discard;
   float a = pow(smoothstep(0.5, 0.0, d), 1.6) * vAlpha * uOpacity;
-  gl_FragColor = vec4(vColor, a);
+  gl_FragColor = vec4(vColor * uBoost, min(1.0, a * uBoost));
 }
 `
 
@@ -367,7 +377,7 @@ export class ArxScene {
     this.scene.background = new Color(BG)
     this.scene.add(this.group)
 
-    const count = this.small ? 6000 : 14000
+    const count = this.small ? 7500 : 14000
     const rnd = mulberry(7)
 
     this.pointsMat = new ShaderMaterial({
@@ -379,7 +389,9 @@ export class ArxScene {
       uniforms: {
         uMorph: { value: 0 },
         uTime: { value: 0 },
-        uSize: { value: this.small ? 0.036 : 0.028 },
+        uSize: { value: this.small ? 0.046 : 0.028 },
+        uSat: { value: this.small ? 1.55 : 1.2 },
+        uBoost: { value: this.small ? 1.6 : 1 },
         uScale: { value: 1 },
         uIntro: { value: reduced ? 1 : 0 },
         uVel: { value: 0 },
@@ -661,9 +673,9 @@ export class ArxScene {
     u.uIntro!.value = this.reduced ? 1 : Math.min(1, this.elapsed / 2.8)
     u.uVel!.value = this.vel
     u.uMouseOn!.value = this.mouseOn
-    u.uOpacity!.value = narrow ? 0.75 : 1
+    u.uOpacity!.value = 1
     this.arcsMat.uniforms.uTime!.value = t
-    this.arcsMat.uniforms.uOpacity!.value = Math.max(0, 1 - m * 2.5) * Math.min(1, u.uIntro!.value * 1.2) * (narrow ? 0.6 : 1)
+    this.arcsMat.uniforms.uOpacity!.value = Math.max(0, 1 - m * 2.5) * Math.min(1, u.uIntro!.value * 1.2) * (this.small ? 1.6 : 1)
     this.dustMat.uniforms.uTime!.value = t
     this.dust.rotation.y = this.spin * 0.15 + p.x * 0.05
     this.dust.rotation.x = p.y * 0.03

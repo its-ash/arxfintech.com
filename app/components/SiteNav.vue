@@ -42,7 +42,7 @@ onBeforeUnmount(() => {
   <header ref="root" class="sticky top-0 z-40 border-b border-white/8 bg-ink-950/90 backdrop-blur-xl [@media(prefers-reduced-transparency:reduce)]:bg-ink-950">
     <nav aria-label="Main" class="shell flex h-18 items-center gap-2">
       <NuxtLink to="/" class="mr-auto flex shrink-0 items-center" aria-label="ARX Fintech home">
-        <img src="/logo.png" alt="ARX Fintech" width="640" height="253" fetchpriority="high" class="h-9 w-auto" />
+        <BrandLogo priority class="h-9" />
       </NuxtLink>
 
       <ul class="hidden items-center gap-1 lg:flex">

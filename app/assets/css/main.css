@@ -277,6 +277,24 @@ html.lenis body {
   opacity: 0.14;
 }
 
+@keyframes logo-beat {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.12;
+  }
+}
+
+.logo-beat {
+  animation: logo-beat 1.6s var(--ease-in-out) infinite;
+}
+
+.logo-beat-green {
+  animation-delay: -0.8s;
+}
+
 @keyframes grow-x {
   from {
     scale: 0 1;
@@ -367,7 +385,8 @@ details.faq[open]::details-content {
     opacity: 1;
   }
 
-  .step-line {
+  .step-line,
+  .logo-beat {
     animation: none;
   }
 

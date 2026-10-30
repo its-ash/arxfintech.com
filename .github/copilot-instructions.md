@@ -36,6 +36,7 @@ Marketing site for https://arxfintech.com. Nuxt 4 static site, dark theme, Three
 
 ## Rules
 
+- Logo: use `<BrandLogo />`. It splits `public/logo.png` into white, red and green layers at runtime and blinks red and green in turn (1.6 s cycle, same rhythm as the particle logo in `scene.ts`).
 - Brand: logo is `public/logo.png` (white, from arxfintech.com). Background `#111111`, accent `#D6FB61` (`--color-accent`, and `COLORS.accent` and `BG` in `app/lib/scene.ts`).
 - Use only the one accent colour. Do not use em-dashes in copy.
 - Animate only `transform`, `opacity` and `translate`.

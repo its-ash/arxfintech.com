@@ -13,6 +13,7 @@ The site is a static Nuxt 4 site. It has a dark theme, a scroll-driven Three.js 
 - A Three.js particle scene. When you scroll, the particles change shape: globe, candlestick chart, gyroscope rings, liquidity wave and the ARX logo.
 - Scene effects: intro burst, curl-noise drift, cursor repel, scroll-speed turbulence, bloom, grain and vignette.
 - Text animations: 3D character flip, word mask reveal, scramble text, scroll-lit statements and scroll-driven display type.
+- The red and green parts of the logo blink in an alternating rhythm, in the header, footer and particle logo.
 - A demo request form with validation. The form sends data to Web3Forms.
 - Support for reduced motion, keyboard navigation and screen readers.
 
