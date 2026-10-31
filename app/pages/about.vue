@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PhArrowUpRight } from '@phosphor-icons/vue'
-import { facts, groups, inGroup, values } from '~/data/site'
+import { company, companyNote, facts, groups, inGroup, values } from '~/data/site'
 
 useSeoMeta({
   title: 'About us',
@@ -8,11 +8,20 @@ useSeoMeta({
 })
 
 const stages = groups.map((g) => ({ ...g, items: inGroup(g.id) }))
+
+const details = [
+  { label: 'Legal name', value: company.legalName },
+  { label: 'Company type', value: company.type },
+  { label: 'Trade License', value: company.license, mono: true },
+  { label: 'Licensing authority', value: company.authority },
+  { label: 'Licensed activities', value: company.activities.join(', ') },
+  { label: 'Office', value: `${company.address.street}, ${company.address.area}, ${company.address.city}, ${company.address.country}` },
+]
 </script>
 
 <template>
   <div>
-    <section v-bind="sceneAttrs({ morph: 2, x: 1.8, z: 7.2, tilt: 1.05 })" class="relative flex min-h-[calc(100dvh-4.5rem)] items-center py-16">
+    <section v-bind="sceneAttrs({ morph: 2, x: 1.8, z: 7.2, tilt: 1.05 })" class="relative flex min-h-[calc(100dvh-3.5rem)] md:min-h-[calc(100dvh-4.5rem)] items-center py-16">
       <div class="shell">
         <div class="max-w-xl">
           <ScrambleText text="About ARX Fintech" tag="p" class="eyebrow" :delay="200" />
@@ -66,6 +75,30 @@ const stages = groups.map((g) => ({ ...g, items: inGroup(g.id) }))
               </li>
             </ul>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="relative py-24 md:py-32">
+      <div class="shell grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
+        <div class="lg:sticky lg:top-32 lg:self-start">
+          <SplitText text="Company *details*" class="display text-5xl text-ink-50 md:text-6xl" />
+          <p class="lede mt-6" v-reveal="120">{{ companyNote }}</p>
+        </div>
+        <div class="panel px-6 md:px-8" v-reveal="80">
+          <dl class="divide-y divide-white/8">
+            <div v-for="d in details" :key="d.label" class="grid gap-1 py-5 sm:grid-cols-[11rem_1fr] sm:gap-6">
+              <dt class="eyebrow !text-ink-500">{{ d.label }}</dt>
+              <dd class="text-ink-50" :class="d.mono && 'font-mono text-accent'">{{ d.value }}</dd>
+            </div>
+            <div class="grid gap-1 py-5 sm:grid-cols-[11rem_1fr] sm:gap-6">
+              <dt class="eyebrow !text-ink-500">Contact</dt>
+              <dd class="flex flex-col gap-1">
+                <a :href="`mailto:${company.email}`" class="text-ink-50 transition-colors hover:text-accent">{{ company.email }}</a>
+                <a :href="company.phoneHref" class="text-ink-50 transition-colors hover:text-accent">{{ company.phone }}</a>
+              </dd>
+            </div>
+          </dl>
         </div>
       </div>
     </section>

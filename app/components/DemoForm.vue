@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PhCheckCircle, PhCircleNotch, PhPaperPlaneTilt, PhWarningCircle } from '@phosphor-icons/vue'
-import { bySlug, services } from '~/data/site'
+import { bySlug, company, services } from '~/data/site'
 
 const ENDPOINT = 'https://api.web3forms.com/submit'
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
@@ -50,7 +50,7 @@ const submit = async () => {
   }
   if (!web3formsKey) {
     status.value = 'error'
-    note.value = 'The form is not available right now. Please try again later.'
+    note.value = `The form is not available right now. Email us at ${company.email}.`
     return
   }
   status.value = 'sending'
@@ -77,7 +77,7 @@ const submit = async () => {
     status.value = 'sent'
   } catch {
     status.value = 'error'
-    note.value = 'We could not send your request. Check your connection and try again.'
+    note.value = `We could not send your request. Try again, or email us at ${company.email}.`
   }
 }
 

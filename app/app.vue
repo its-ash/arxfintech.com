@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { site } from '~/data/site'
+import { company, site } from '~/data/site'
 
 const route = useRoute()
 
@@ -13,9 +13,20 @@ useHead({
         '@context': 'https://schema.org',
         '@type': 'Organization',
         name: site.name,
+        legalName: company.legalName,
         url: site.url,
         logo: `${site.url}/icon-512.png`,
         description: site.description,
+        email: company.email,
+        telephone: company.phoneHref.replace('tel:', ''),
+        identifier: { '@type': 'PropertyValue', propertyID: 'DET Trade License', value: company.license },
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: company.address.street,
+          addressLocality: `${company.address.area}, ${company.address.city}`,
+          addressCountry: company.address.countryCode,
+        },
+        contactPoint: { '@type': 'ContactPoint', contactType: 'sales', email: company.email, telephone: company.phoneHref.replace('tel:', '') },
       }),
     },
   ],

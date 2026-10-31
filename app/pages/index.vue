@@ -19,7 +19,7 @@ const bento: Record<string, string> = {
 
 <template>
   <div>
-    <section v-bind="sceneAttrs({ morph: 0, x: 1.7, z: 7, tilt: 0.35 })" class="relative flex min-h-[calc(100dvh-4.5rem)] items-center py-16">
+    <section v-bind="sceneAttrs({ morph: 0, x: 1.7, z: 7, tilt: 0.35 })" class="relative flex min-h-[calc(100dvh-3.5rem)] md:min-h-[calc(100dvh-4.5rem)] items-center py-16">
       <div class="shell">
         <div class="max-w-2xl">
           <ScrambleText text="Brokerage technology partner" tag="p" class="eyebrow" :delay="300" />

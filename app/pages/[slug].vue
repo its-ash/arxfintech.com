@@ -26,7 +26,7 @@ useSeoMeta({
 
 <template>
   <div :key="s.slug">
-    <section v-bind="sceneAttrs(s.scene)" class="relative flex min-h-[calc(100dvh-4.5rem)] items-center py-16">
+    <section v-bind="sceneAttrs(s.scene)" class="relative flex min-h-[calc(100dvh-3.5rem)] md:min-h-[calc(100dvh-4.5rem)] items-center py-16">
       <div class="shell">
         <div class="max-w-2xl">
           <ScrambleText :text="group.label" tag="p" class="eyebrow" :delay="200" />

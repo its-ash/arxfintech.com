@@ -96,6 +96,28 @@ export const site = {
     'ARX Fintech sets up offshore and regulated brokerages and delivers the trading platform, liquidity bridge, copy trading, MAM, website, email and phone numbers they need.',
 }
 
+export const company = {
+  legalName: 'A R X FINTECH MARKETING MANAGEMENT L.L.C',
+  type: 'Limited liability company',
+  license: '1650312',
+  authority: 'Dubai Economy and Tourism (DET), Government of Dubai, UAE',
+  activities: ['Marketing management', 'Cost control and risk management services'],
+  email: 'connect@arxfintech.com',
+  phone: '+971 50 935 5387',
+  phoneHref: 'tel:+971509355387',
+  web: 'www.arxfintech.com',
+  address: {
+    street: 'Office 504, The Atrium Center, Bank Street',
+    area: 'Mankhool, Bur Dubai',
+    city: 'Dubai',
+    country: 'United Arab Emirates',
+    countryCode: 'AE',
+  },
+  mapUrl: 'https://www.google.com/maps/search/?api=1&query=The%20Atrium%20Center%2C%20Bank%20Street%2C%20Mankhool%2C%20Bur%20Dubai',
+}
+
+export const companyNote = `${company.legalName} is a limited liability company incorporated under ${company.authority}, with Trade License Number ${company.license}.`
+
 export const groups: Group[] = [
   {
     id: 'company',

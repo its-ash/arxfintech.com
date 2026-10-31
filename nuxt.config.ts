@@ -16,6 +16,7 @@ export default defineNuxtConfig({
       { name: 'Geist Mono', provider: 'google', weights: [400, 500] },
       { name: 'Clash Display', provider: 'fontshare', weights: [500, 600] },
       { name: 'Playfair Display', provider: 'google', weights: [400], styles: ['italic'] },
+      { name: 'Roboto', provider: 'google', weights: [400, 500, 700] },
     ],
   },
   app: {

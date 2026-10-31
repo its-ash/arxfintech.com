@@ -26,7 +26,7 @@ The site is a static Nuxt 4 site. It has a dark theme, a scroll-driven Three.js 
 | 3D | Three.js with post-processing (bloom) |
 | Scroll | GSAP ScrollTrigger, Lenis |
 | Icons | Phosphor Icons |
-| Fonts | Clash Display, Playfair Display, Geist, Geist Mono (self-hosted by `@nuxt/fonts`) |
+| Fonts | Clash Display, Playfair Display, Roboto (header), Geist, Geist Mono (self-hosted by `@nuxt/fonts`) |
 
 ## Requirements
 
@@ -69,7 +69,7 @@ Copy `.env.example` to `.env` and set the values:
 ```text
 app/
   assets/css/main.css      Design tokens, fonts and animation styles
-  components/              Layout, navigation, form and text animation components
+  components/              Layout, navigation, logo, form and text animation components
   data/site.ts             All copy, services, groups and FAQs
   layouts/default.vue      Page shell with the 3D canvas
   lib/scene.ts             Three.js particle scene
@@ -103,6 +103,10 @@ Each page section sets the scene state with `sceneAttrs`:
 | `tilt` | Rotation on the X axis |
 
 When you scroll from one section to the next, the scene blends between the two states. Give neighbouring sections adjacent `morph` values for clean transitions.
+
+## Company details
+
+The legal name, Trade License, office address, email and phone are in `company` in `app/data/site.ts`. The footer, the contact page, the about page and the structured data (JSON-LD) use these values.
 
 ## Brand
 

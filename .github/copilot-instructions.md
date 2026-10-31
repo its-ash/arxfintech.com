@@ -8,7 +8,7 @@ Marketing site for https://arxfintech.com. Nuxt 4 static site, dark theme, Three
 - Tailwind CSS v4 through `@tailwindcss/vite`. Tokens are in `app/assets/css/main.css` (`@theme`).
 - Three.js scene in `app/lib/scene.ts`. GSAP ScrollTrigger and Lenis in `app/plugins/smooth.client.ts`.
 - Icons: `@phosphor-icons/vue` only.
-- Fonts through `@nuxt/fonts`: Clash Display (`font-display`, headings), Playfair Display italic (`font-serif`, accent words), Geist (body), Geist Mono (`eyebrow`, labels, numbers).
+- Fonts through `@nuxt/fonts`: Clash Display (`font-display`, headings), Playfair Display italic (`font-serif`, accent words), Geist (body), Geist Mono (`eyebrow`, labels, numbers), Roboto (`font-roboto`, site header only).
 
 ## Commands
 
@@ -41,4 +41,4 @@ Marketing site for https://arxfintech.com. Nuxt 4 static site, dark theme, Three
 - Use only the one accent colour. Do not use em-dashes in copy.
 - Animate only `transform`, `opacity` and `translate`.
 - Use `v-reveal` (optional delay in ms) for entry reveals.
-- The demo form posts to Web3Forms. Set `NUXT_PUBLIC_WEB3FORMS_KEY` at build time.
+- The demo form (`DemoForm.vue`) posts to Web3Forms. Set `NUXT_PUBLIC_WEB3FORMS_KEY` at build time. It reads `?topic=<slug>` to preselect the service.

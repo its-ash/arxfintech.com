@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PhCaretDown, PhList, PhX } from '@phosphor-icons/vue'
+import { PhCaretDown, PhChatCircleText, PhList, PhX } from '@phosphor-icons/vue'
 import { groups, inGroup, type GroupId } from '~/data/site'
 
 const open = ref<GroupId | null>(null)
@@ -39,10 +39,10 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <header ref="root" class="sticky top-0 z-40 border-b border-white/8 bg-ink-950/90 backdrop-blur-xl [@media(prefers-reduced-transparency:reduce)]:bg-ink-950">
-    <nav aria-label="Main" class="shell flex h-18 items-center gap-2">
+  <header ref="root" class="sticky top-0 z-40 font-roboto border-b border-white/8 bg-ink-950/90 backdrop-blur-xl [@media(prefers-reduced-transparency:reduce)]:bg-ink-950">
+    <nav aria-label="Main" class="shell flex h-14 items-center gap-2 md:h-18">
       <NuxtLink to="/" class="mr-auto flex shrink-0 items-center" aria-label="ARX Fintech home">
-        <BrandLogo priority class="h-9" />
+        <BrandLogo priority class="h-7 md:h-9" />
       </NuxtLink>
 
       <ul class="hidden items-center gap-1 lg:flex">
@@ -100,11 +100,16 @@ onBeforeUnmount(() => {
         </li>
       </ul>
 
-      <NuxtLink to="/contact" class="btn btn-primary ml-4 hidden !min-h-11 sm:inline-flex">Request a demo</NuxtLink>
+      <NuxtLink to="/contact" class="btn btn-primary ml-4 hidden !min-h-11 md:inline-flex">Request a demo</NuxtLink>
+
+      <NuxtLink to="/contact" class="btn btn-primary !min-h-10 !px-4 text-sm md:hidden">
+        <PhChatCircleText :size="16" />
+        Contact
+      </NuxtLink>
 
       <button
         type="button"
-        class="-mr-2 grid size-11 place-items-center rounded-full text-ink-50 lg:hidden"
+        class="-mr-2 hidden size-11 place-items-center rounded-full text-ink-50 md:grid lg:hidden"
         :aria-label="mobile ? 'Close menu' : 'Open menu'"
         :aria-expanded="mobile"
         aria-controls="mobile-menu"
@@ -116,7 +121,7 @@ onBeforeUnmount(() => {
     </nav>
 
     <Transition name="sheet">
-      <div v-if="mobile" id="mobile-menu" class="fixed inset-x-0 top-18 bottom-0 overflow-y-auto overscroll-contain border-t border-white/8 bg-ink-950 px-5 py-6 lg:hidden">
+      <div v-if="mobile" id="mobile-menu" class="fixed inset-x-0 top-14 bottom-0 md:top-18 overflow-y-auto overscroll-contain border-t border-white/8 bg-ink-950 px-5 py-6 lg:hidden">
         <div v-for="m in menus" :key="m.id" class="border-b border-white/8 py-4 first:pt-0">
           <p class="mb-2 text-xs text-ink-500">{{ m.label }}</p>
           <NuxtLink v-for="s in m.items" :key="s.slug" :to="`/${s.slug}`" class="flex items-center gap-3 py-2.5 text-ink-50">
