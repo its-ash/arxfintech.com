@@ -9,15 +9,18 @@ withDefaults(defineProps<{ title?: string; text?: string; topic?: string }>(), {
 </script>
 
 <template>
-  <section v-bind="sceneAttrs({ morph: 4, x: 0, y: 0.95, z: 6.8, tilt: 0 })" class="relative flex min-h-dvh flex-col justify-end pt-[45dvh] pb-20 md:pb-28">
+  <section v-bind="sceneAttrs({ morph: 4, x: 0, y: 0.95, z: 6.8, tilt: 0 })" class="relative flex min-h-dvh flex-col justify-end overflow-x-clip pt-[45dvh] pb-20 md:pb-28">
     <div class="shell flex flex-col items-center text-center">
-      <SplitText :text="title" class="display max-w-4xl text-5xl text-ink-50 md:text-7xl" />
-      <p class="lede mt-6 text-center" v-reveal="150">{{ text }}</p>
-      <div class="mt-10 flex flex-wrap justify-center gap-3" v-reveal="250">
-        <NuxtLink :to="topic ? { path: '/contact', query: { topic } } : '/contact'" class="btn btn-primary">
-          Request a demo
-          <PhArrowRight :size="16" />
-        </NuxtLink>
+      <div class="relative flex flex-col items-center">
+        <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 -inset-y-16 -z-10 bg-[radial-gradient(closest-side,rgb(12_13_18/.78)_0%,rgb(12_13_18/.38)_54%,transparent_100%)] md:-inset-x-28 md:-inset-y-20" />
+        <SplitText :text="title" class="display max-w-4xl text-5xl text-ink-50 md:text-7xl" />
+        <p class="lede mt-6 text-center" v-reveal="150">{{ text }}</p>
+        <div class="mt-10 flex flex-wrap justify-center gap-3" v-reveal="250">
+          <NuxtLink :to="topic ? { path: '/contact', query: { topic } } : '/contact'" class="btn btn-primary">
+            Request a demo
+            <PhArrowRight :size="16" />
+          </NuxtLink>
+        </div>
       </div>
     </div>
   </section>

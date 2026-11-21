@@ -7,21 +7,25 @@
   --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
   --font-roboto: "Roboto", ui-sans-serif, system-ui, sans-serif;
 
-  --color-ink-950: #111111;
-  --color-ink-900: #171717;
-  --color-ink-800: #202020;
-  --color-ink-700: #2d2d2d;
-  --color-ink-500: #8e8e8e;
-  --color-ink-300: #b9b9b9;
-  --color-ink-100: #ececec;
-  --color-ink-50: #f7f7f5;
+  --color-ink-950: #0c0d12;
+  --color-ink-900: #14161e;
+  --color-ink-800: #1e212d;
+  --color-ink-700: #2c3142;
+  --color-ink-500: #9198ac;
+  --color-ink-300: #c8cedc;
+  --color-ink-100: #eef1f7;
+  --color-ink-50: #f8f9fc;
 
   --color-accent: #d6fb61;
-  --color-accent-soft: rgb(214 251 97 / 0.1);
-  --color-accent-ink: #151a05;
+  --color-accent-soft: rgb(214 251 97 / 0.14);
+  --color-accent-ink: #111603;
 
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+:root {
+  --spectrum-beam: linear-gradient(90deg, #3d8bff, #00eeff, #19ff9b, #d6fb61, #ffc933, #ff3d7f);
 }
 
 @layer base {
@@ -29,6 +33,8 @@
     color-scheme: dark;
     background: var(--color-ink-950);
     color: var(--color-ink-100);
+    overflow-x: clip;
+    scroll-padding-top: 5.5rem;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -101,46 +107,228 @@ html.lenis body {
       background-color 200ms var(--ease-out),
       color 200ms var(--ease-out),
       border-color 200ms var(--ease-out),
+      box-shadow 220ms var(--ease-out),
+      translate 200ms var(--ease-out),
       scale 160ms var(--ease-out);
+
+    & svg {
+      transition: translate 200ms var(--ease-out);
+    }
 
     &:active {
       scale: 0.97;
+      translate: 0 0;
     }
   }
 
   .btn-primary {
     background: var(--color-accent);
     color: var(--color-accent-ink);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.55),
+      0 10px 28px -10px rgb(214 251 97 / 0.5),
+      0 2px 10px rgb(0 0 0 / 0.5);
 
     @media (hover: hover) and (pointer: fine) {
       &:hover {
-        background: #e4ff8f;
+        background: #e5ff8d;
+        translate: 0 -2px;
+        box-shadow:
+          inset 0 1px 0 rgb(255 255 255 / 0.72),
+          0 16px 38px -10px rgb(214 251 97 / 0.68),
+          0 6px 16px rgb(0 0 0 / 0.55);
+
+        & svg {
+          translate: 0.2rem 0;
+        }
       }
     }
   }
 
   .btn-ghost {
-    border: 1px solid rgb(255 255 255 / 0.16);
+    border: 1px solid rgb(255 255 255 / 0.2);
     color: var(--color-ink-50);
-    background: rgb(17 17 17 / 0.55);
-    backdrop-filter: blur(10px);
+    background: rgb(14 16 24 / 0.72);
+    backdrop-filter: blur(18px) saturate(1.45);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.18),
+      0 12px 30px -16px rgb(0 0 0 / 0.85);
 
     @media (hover: hover) and (pointer: fine) {
       &:hover {
-        border-color: var(--color-accent);
+        translate: 0 -2px;
+        border-color: rgb(214 251 97 / 0.65);
         color: var(--color-accent);
+        background: rgb(20 24 34 / 0.84);
+        box-shadow:
+          inset 0 1px 0 rgb(214 251 97 / 0.25),
+          0 14px 34px -14px rgb(0 0 0 / 0.9);
       }
     }
   }
 
-  .panel {
-    border-radius: 1rem;
-    border: 1px solid rgb(255 255 255 / 0.08);
-    background: rgb(23 23 23 / 0.66);
-    backdrop-filter: blur(18px) saturate(1.1);
+  .btn-cinema {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: -40% auto -40% -60%;
+      width: 45%;
+      pointer-events: none;
+      background: linear-gradient(105deg, transparent 20%, rgb(255 255 255 / 0.55) 50%, transparent 80%);
+      transform: translateX(-120%) skewX(-18deg);
+      transition: transform 620ms var(--ease-out);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover::after {
+        transform: translateX(460%) skewX(-18deg);
+      }
+    }
+  }
+
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    border-bottom: 1px solid rgb(255 255 255 / 0.1);
+    background-image: linear-gradient(180deg, rgb(255 255 255 / 0.055) 0%, transparent 100%);
+    background-color: rgb(11 12 18 / 0.42);
+    backdrop-filter: blur(22px) saturate(1.8);
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.04),
-      0 24px 60px -30px rgb(0 0 0 / 0.8);
+      inset 0 -1px 0 rgb(255 255 255 / 0.04),
+      0 10px 36px -18px rgb(0 0 0 / 0.65);
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(
+        30rem 4.5rem at var(--hx, 50%) 100%,
+        rgb(214 251 97 / 0.14),
+        rgb(0 245 255 / 0.08) 42%,
+        transparent 74%
+      );
+      transition: opacity 320ms var(--ease-out);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover::after {
+        opacity: 1;
+      }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      animation: header-in 680ms var(--ease-out) both;
+    }
+
+    @media (prefers-reduced-transparency: reduce) {
+      background: var(--color-ink-950);
+      backdrop-filter: none;
+    }
+
+    @media (prefers-contrast: more) {
+      background: var(--color-ink-950);
+      border-bottom-color: rgb(255 255 255 / 0.4);
+    }
+  }
+
+  .nav-rail {
+    position: relative;
+    border-radius: 999px;
+    border: 1px solid rgb(255 255 255 / 0.14);
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.07) 0%, rgb(14 16 24 / 0.66) 100%);
+    padding: 0.25rem;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.2),
+      0 12px 30px -14px rgb(0 0 0 / 0.88);
+    transition:
+      border-color 260ms var(--ease-out),
+      box-shadow 260ms var(--ease-out);
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        border-color: rgb(255 255 255 / 0.24);
+        box-shadow:
+          inset 0 1px 0 rgb(255 255 255 / 0.28),
+          0 14px 34px -14px rgb(0 0 0 / 0.92),
+          0 0 28px -12px rgb(0 245 255 / 0.3);
+      }
+    }
+  }
+
+  .nav-glider {
+    position: absolute;
+    top: 0.25rem;
+    bottom: 0.25rem;
+    left: 0;
+    border-radius: 999px;
+    border: 1px solid rgb(255 255 255 / 0.18);
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.12) 0%, rgb(255 255 255 / 0.05) 100%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.26),
+      0 0 22px -6px rgb(214 251 97 / 0.36);
+    pointer-events: none;
+    transition:
+      transform 280ms var(--ease-out),
+      width 280ms var(--ease-out),
+      opacity 200ms var(--ease-out);
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: auto 0.85rem -1px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgb(0 245 255 / 0.7), rgb(214 251 97 / 0.9), transparent);
+    }
+  }
+
+  .panel {
+    position: relative;
+    border-radius: 1.125rem;
+    border: 1px solid rgb(255 255 255 / 0.16);
+    background:
+      linear-gradient(165deg, rgb(255 255 255 / 0.09) 0%, rgb(255 255 255 / 0.02) 34%, transparent 68%),
+      rgb(14 16 24 / 0.8);
+    backdrop-filter: blur(26px) saturate(1.75);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.24),
+      inset 0 0 0 1px rgb(255 255 255 / 0.035),
+      0 2px 8px rgb(0 0 0 / 0.52),
+      0 24px 56px -20px rgb(0 0 0 / 0.94),
+      0 42px 92px -32px rgb(0 0 0 / 0.86);
+    transition:
+      border-color 240ms var(--ease-out),
+      box-shadow 260ms var(--ease-out),
+      translate 260ms var(--ease-out),
+      background-color 240ms var(--ease-out);
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(
+        26rem circle at var(--px, 50%) var(--py, 0%),
+        rgb(214 251 97 / 0.11),
+        rgb(0 238 255 / 0.05) 42%,
+        transparent 72%
+      );
+      transition: opacity 280ms var(--ease-out);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover::before {
+        opacity: 1;
+      }
+    }
 
     @media (prefers-reduced-transparency: reduce) {
       background: var(--color-ink-900);
@@ -149,8 +337,46 @@ html.lenis body {
 
     @media (prefers-contrast: more) {
       background: var(--color-ink-900);
-      border-color: rgb(255 255 255 / 0.4);
+      border-color: rgb(255 255 255 / 0.45);
     }
+  }
+
+  .panel-lift {
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        translate: 0 -4px;
+        border-color: rgb(214 251 97 / 0.36);
+        box-shadow:
+          inset 0 1px 0 rgb(255 255 255 / 0.28),
+          inset 0 0 0 1px rgb(214 251 97 / 0.1),
+          0 26px 60px -18px rgb(0 0 0 / 0.95),
+          0 0 38px -16px rgb(214 251 97 / 0.22);
+      }
+    }
+  }
+
+  .icon-badge {
+    display: grid;
+    place-items: center;
+    border-radius: 0.75rem;
+    border: 1px solid rgb(214 251 97 / 0.24);
+    background: linear-gradient(155deg, rgb(214 251 97 / 0.18), rgb(0 238 255 / 0.07));
+    color: var(--color-accent);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16);
+  }
+
+  .eyebrow-pill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    border: 1px solid rgb(214 251 97 / 0.3);
+    background: rgb(14 16 24 / 0.78);
+    padding: 0.45rem 0.95rem;
+    backdrop-filter: blur(18px) saturate(1.5);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.2),
+      0 10px 28px -12px rgb(0 0 0 / 0.88),
+      0 0 24px -12px rgb(214 251 97 / 0.35);
   }
 
   .link-arrow {
@@ -175,7 +401,10 @@ html.lenis body {
     font-family: var(--font-display);
     font-weight: 600;
     letter-spacing: -0.025em;
-    line-height: 1;
+    line-height: 1.02;
+    text-shadow:
+      0 2px 26px rgb(8 9 14 / 0.88),
+      0 1px 2px rgb(0 0 0 / 0.7);
   }
 
   .eyebrow {
@@ -189,8 +418,9 @@ html.lenis body {
   .lede {
     color: var(--color-ink-300);
     font-size: 1.0625rem;
-    line-height: 1.6;
+    line-height: 1.62;
     max-width: 60ch;
+    text-shadow: 0 2px 18px rgb(8 9 14 / 0.92);
 
     @media (width >= 768px) {
       font-size: 1.125rem;
@@ -199,29 +429,32 @@ html.lenis body {
 
   .text-outline {
     color: transparent;
-    -webkit-text-stroke: 1.5px rgb(255 255 255 / 0.35);
+    -webkit-text-stroke: 1.5px rgb(255 255 255 / 0.42);
   }
 }
 
 .js [data-reveal] {
   opacity: 0;
-  translate: 0 1.5rem;
+  translate: 0 1.85rem;
+  scale: 0.975;
   transition:
-    opacity 900ms var(--ease-out) var(--d, 0ms),
-    translate 900ms var(--ease-out) var(--d, 0ms);
+    opacity 780ms var(--ease-out) var(--d, 0ms),
+    translate 900ms var(--ease-out) var(--d, 0ms),
+    scale 900ms var(--ease-out) var(--d, 0ms);
 }
 
 .js [data-reveal][data-in] {
   opacity: 1;
   translate: 0 0;
+  scale: 1;
 }
 
 .split .sw {
   display: inline-block;
   overflow: clip;
   vertical-align: top;
-  padding: 0 0.06em 0.16em;
-  margin: 0 -0.06em -0.16em;
+  padding: 0 0.08em 0.18em;
+  margin: 0 -0.08em -0.18em;
 }
 
 .split .si,
@@ -235,16 +468,20 @@ html.lenis body {
   font-weight: 400;
   letter-spacing: -0.01em;
   color: var(--color-accent);
+  text-shadow:
+    0 0 34px rgb(214 251 97 / 0.34),
+    0 2px 20px rgb(8 9 14 / 0.85);
 }
 
 .js .split[data-reveal] {
   opacity: 1;
   translate: none;
+  scale: none;
 }
 
 .js .split .si {
   translate: 0 115%;
-  transition: translate 1100ms var(--ease-out) calc(var(--d, 0ms) + var(--i) * 60ms);
+  transition: translate 980ms var(--ease-out) calc(var(--d, 0ms) + var(--i) * 52ms);
 }
 
 .js .split[data-in] .si {
@@ -253,7 +490,7 @@ html.lenis body {
 
 .split[data-mode="chars"] .sw {
   overflow: visible;
-  perspective: 700px;
+  perspective: 760px;
 }
 
 .js .split[data-mode="chars"] .si {
@@ -262,11 +499,11 @@ html.lenis body {
 
 .js .split[data-mode="chars"] .sc {
   opacity: 0;
-  transform: translateY(0.45em) rotateX(-85deg);
+  transform: translateY(0.42em) rotateX(-80deg);
   transform-origin: 50% 100%;
   transition:
-    opacity 700ms var(--ease-out) calc(var(--d, 0ms) + var(--j) * 26ms),
-    transform 1100ms var(--ease-out) calc(var(--d, 0ms) + var(--j) * 26ms);
+    opacity 620ms var(--ease-out) calc(var(--d, 0ms) + var(--j) * 22ms),
+    transform 960ms var(--ease-out) calc(var(--d, 0ms) + var(--j) * 22ms);
 }
 
 .js .split[data-mode="chars"][data-in] .sc {
@@ -275,7 +512,7 @@ html.lenis body {
 }
 
 .js [data-w] {
-  opacity: 0.14;
+  opacity: 0.24;
 }
 
 @keyframes logo-beat {
@@ -284,7 +521,7 @@ html.lenis body {
     opacity: 1;
   }
   50% {
-    opacity: 0.12;
+    opacity: 0.16;
   }
 }
 
@@ -292,8 +529,37 @@ html.lenis body {
   animation: logo-beat 1.6s var(--ease-in-out) infinite;
 }
 
+.logo-beat-red {
+  filter: drop-shadow(0 0 7px rgb(255 61 127 / 0.55));
+}
+
 .logo-beat-green {
   animation-delay: -0.8s;
+  filter: drop-shadow(0 0 7px rgb(25 255 155 / 0.55));
+}
+
+@keyframes header-in {
+  from {
+    opacity: 0;
+    translate: 0 -0.5rem;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes header-condense {
+  from {
+    background-color: rgb(12 13 18 / 0.34);
+    border-bottom-color: rgb(255 255 255 / 0.08);
+    box-shadow: 0 6px 24px -16px rgb(0 0 0 / 0.4);
+  }
+  to {
+    background-color: rgb(11 12 18 / 0.88);
+    border-bottom-color: rgb(255 255 255 / 0.16);
+    box-shadow: 0 18px 48px -16px rgb(0 0 0 / 0.94);
+  }
 }
 
 @keyframes grow-x {
@@ -306,7 +572,20 @@ html.lenis body {
 }
 
 .step-line {
+  background: var(--spectrum-beam);
   transform-origin: left center;
+}
+
+@supports ((animation-timeline: scroll()) and (animation-range: 0% 100%)) {
+  @media (prefers-reduced-motion: no-preference) {
+    .site-header {
+      animation:
+        header-in 680ms var(--ease-out) both,
+        header-condense linear both;
+      animation-timeline: auto, scroll(block root);
+      animation-range: normal, 0px 140px;
+    }
+  }
 }
 
 @supports (animation-timeline: view()) {
@@ -372,6 +651,7 @@ details.faq[open]::details-content {
 @media (prefers-reduced-motion: reduce) {
   .js [data-reveal] {
     translate: none;
+    scale: none;
     transition: opacity 200ms linear;
   }
 
@@ -384,6 +664,26 @@ details.faq[open]::details-content {
 
   .js [data-w] {
     opacity: 1;
+  }
+
+  .panel::before,
+  .site-header::after,
+  .btn-cinema::after {
+    display: none;
+  }
+
+  .nav-glider {
+    transition: none;
+  }
+
+  .site-header {
+    animation: none;
+  }
+
+  .panel-lift:hover,
+  .btn-primary:hover,
+  .btn-ghost:hover {
+    translate: none;
   }
 
   .step-line,

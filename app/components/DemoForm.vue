@@ -81,7 +81,7 @@ const submit = async () => {
   }
 }
 
-const field = 'h-12 w-full rounded-xl border border-white/12 bg-ink-950/70 px-4 text-ink-50 placeholder:text-ink-500 transition-colors focus:border-accent focus:outline-none aria-[invalid=true]:border-[oklch(0.7_0.17_20)]'
+const field = 'h-12 w-full rounded-xl border border-white/15 bg-ink-950/78 px-4 text-ink-50 placeholder:text-ink-500 transition-[border-color,box-shadow,background-color] duration-200 focus:border-accent focus:bg-ink-950/92 focus:shadow-[0_0_0_3px_rgb(214_251_97/.18)] focus:outline-none aria-[invalid=true]:border-[oklch(0.7_0.17_20)]'
 </script>
 
 <template>

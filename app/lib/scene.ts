@@ -5,8 +5,10 @@ import {
   Color,
   Group,
   LineSegments,
+  NoToneMapping,
   PerspectiveCamera,
   Points,
+  SRGBColorSpace,
   Scene,
   ShaderMaterial,
   Vector2,
@@ -29,17 +31,21 @@ export interface SceneState {
 
 export const SCENE_KEYS = ['morph', 'x', 'y', 'z', 'tilt'] as const
 
-const RADIUS = 2
+const RADIUS = 2.04
 const CANDLES = 44
-const CHART_W = 6.4
+const CHART_W = 6.5
 const LOGO_W = 5.4
 const FOV = 40
-const BG = '#111111'
+const BG = '#0c0d12'
 
-const COLORS = {
-  base: new Color('#9c9c9c'),
+const PALETTE = {
   accent: new Color('#d6fb61'),
-  bear: new Color('#ff5d6c'),
+  cyan: new Color('#00f5ff'),
+  emerald: new Color('#00ff8c'),
+  azure: new Color('#2979ff'),
+  coral: new Color('#ff2a85'),
+  gold: new Color('#ffbe0b'),
+  orchid: new Color('#c24dff'),
 }
 
 const HUBS: [number, number][] = [
@@ -110,9 +116,13 @@ uniform float uIntro;
 uniform float uVel;
 uniform vec3 uMouse;
 uniform float uMouseOn;
-uniform vec3 uBase;
 uniform vec3 uAccent;
-uniform vec3 uBear;
+uniform vec3 uCyan;
+uniform vec3 uEmerald;
+uniform vec3 uAzure;
+uniform vec3 uCoral;
+uniform vec3 uGold;
+uniform vec3 uOrchid;
 uniform float uSat;
 attribute vec3 aCandle;
 attribute vec3 aRing;
@@ -121,30 +131,51 @@ attribute vec3 aLogo;
 attribute vec3 aLogoCol;
 attribute float aSeed;
 attribute float aTone;
+attribute float aHub;
 varying vec3 vColor;
 varying float vAlpha;
+varying float vSpark;
 
 ${NOISE}
 
 vec3 rotX(vec3 p, float a) { float c = cos(a); float s = sin(a); return vec3(p.x, p.y * c - p.z * s, p.y * s + p.z * c); }
 vec3 rotZ(vec3 p, float a) { float c = cos(a); float s = sin(a); return vec3(p.x * c - p.y * s, p.x * s + p.y * c, p.z); }
 
-vec3 ringPos() {
+vec3 prism(float t) {
+  float x = fract(t) * 6.0;
+  if (x < 1.0) return mix(uAzure, uCyan, x);
+  if (x < 2.0) return mix(uCyan, uEmerald, x - 1.0);
+  if (x < 3.0) return mix(uEmerald, uAccent, x - 2.0);
+  if (x < 4.0) return mix(uAccent, uGold, x - 3.0);
+  if (x < 5.0) return mix(uGold, uCoral, x - 4.0);
+  return mix(uCoral, uOrchid, x - 5.0);
+}
+
+vec3 ringPos(out float ringPulse, out float ringPhase) {
   float layer = aRing.z;
-  float R = 1.45 + layer * 0.48;
-  float dir = layer > 0.5 && layer < 1.5 ? -1.0 : 1.0;
-  float u = aRing.x + uTime * 0.22 * dir * (1.0 + layer * 0.35);
-  float tube = 0.04 + aSeed * 0.07;
+  float R = 1.24 + layer * 0.44;
+  float dir = mod(layer, 2.0) > 0.5 ? -1.0 : 1.0;
+  float u = aRing.x + uTime * 0.25 * dir * (1.0 + layer * 0.24);
+  ringPhase = 0.5 + 0.5 * sin(u * 2.0 + layer * 1.4);
+  ringPulse = pow(0.5 + 0.5 * sin(u * 2.0 - uTime * 1.65 * dir + layer * 1.9), 5.0);
+  float tube = 0.042 + aSeed * 0.068 + ringPulse * 0.036;
   float r = R + tube * cos(aRing.y);
   vec3 p = vec3(r * cos(u), tube * sin(aRing.y), r * sin(u));
-  if (layer > 0.5 && layer < 1.5) p = rotX(p, 1.15);
-  else if (layer > 1.5) p = rotZ(rotX(p, -0.6), 1.05);
+  if (layer < 0.5) p = rotX(p, 0.24 + sin(uTime * 0.35) * 0.08);
+  else if (layer < 1.5) p = rotX(p, 1.12);
+  else if (layer < 2.5) p = rotZ(rotX(p, -0.62), 1.06);
+  else p = rotZ(rotX(p, -1.18), -0.54);
   return p;
 }
 
-vec3 wavePos(out float h) {
+vec3 wavePos(out float h, out float crest) {
   vec3 w = aWave;
-  h = sin(w.x * 1.1 + uTime * 0.9) * 0.22 + cos(w.z * 1.6 - uTime * 0.7) * 0.16 + snoise(vec3(w.x * 0.35, w.z * 0.35, uTime * 0.12)) * 0.45;
+  float w1 = sin(w.x * 1.05 + uTime * 0.95) * 0.27;
+  float w2 = cos(w.z * 1.55 - uTime * 0.78) * 0.19;
+  float w3 = sin((w.x * 0.7 - w.z * 0.9) + uTime * 0.65) * 0.15;
+  float sn = snoise(vec3(w.x * 0.32, w.z * 0.32, uTime * 0.14)) * 0.46;
+  h = w1 + w2 + w3 + sn;
+  crest = smoothstep(0.15, 0.85, h);
   return vec3(w.x, h, w.z);
 }
 
@@ -153,7 +184,7 @@ float hat(float m, float k) { return clamp(1.0 - abs(m - k), 0.0, 1.0); }
 void main() {
   float idx = floor(uMorph);
   float t = uMorph - idx;
-  float ts = clamp((t - aSeed * 0.3) / 0.7, 0.0, 1.0);
+  float ts = clamp((t - aSeed * 0.28) / 0.72, 0.0, 1.0);
   ts = ts * ts * (3.0 - 2.0 * ts);
   float m = idx + ts;
   float w0 = hat(m, 0.0);
@@ -162,28 +193,70 @@ void main() {
   float w3 = hat(m, 3.0);
   float w4 = hat(m, 4.0);
 
+  float lat = position.y / 2.04;
+  float lon = atan(position.z, position.x);
+  float globeWave = 0.5 + 0.5 * sin(position.y * 2.5 - uTime * 1.15 + lon * 2.0);
+  float hubBeat = 0.5 + 0.5 * sin(uTime * 2.6 + aSeed * 14.0);
+  vec3 pGlobe = position * (1.0 + aHub * (0.04 + 0.03 * hubBeat) + pow(globeWave, 4.0) * 0.02);
+
+  float candleX = clamp((aCandle.x + 3.25) / 6.5, 0.0, 1.0);
+  float scanPos = fract(uTime * 0.15) * 1.4 - 0.2;
+  float scan = exp(-pow(scanPos - candleX, 2.0) * 20.0);
+  vec3 pCandle = aCandle + vec3(0.0, scan * 0.065, sin(candleX * 6.0 - uTime * 1.2) * 0.09);
+
+  float ringPulse;
+  float ringPhase;
+  vec3 pRing = ringPos(ringPulse, ringPhase);
+
   float h;
-  vec3 pw = wavePos(h);
-  vec3 p = position * w0 + aCandle * w1 + ringPos() * w2 + pw * w3 + aLogo * w4;
+  float crest;
+  vec3 pWave = wavePos(h, crest);
 
-  float isRed = step(0.15, aLogoCol.r - max(aLogoCol.g, aLogoCol.b));
-  float isGreen = step(0.1, aLogoCol.g - max(aLogoCol.r, aLogoCol.b));
+  vec3 pLogo = aLogo + vec3(0.0, 0.0, sin(aLogo.x * 1.9 + uTime * 1.6) * 0.026);
+
+  vec3 p = pGlobe * w0 + pCandle * w1 + pRing * w2 + pWave * w3 + pLogo * w4;
+
+  float gBand = fract(lon / 6.28318 + lat * 0.36 + uTime * 0.055 + sin(position.y * 1.6) * 0.08);
+  vec3 cGlobeBase = prism(gBand);
+  cGlobeBase = mix(cGlobeBase, mix(uCoral, uOrchid, aSeed), pow(globeWave, 3.2) * 0.52);
+  vec3 cHub = mix(uGold, mix(uCoral, uCyan, step(0.5, aSeed)), 0.4 + 0.6 * hubBeat);
+  vec3 cGlobe = mix(cGlobeBase, cHub * 1.32, clamp(aHub * 1.35, 0.0, 1.0));
+  cGlobe = mix(cGlobe, uAccent * 1.18, step(0.93, aSeed) * 0.6);
+
+  float cy = clamp((aCandle.y + 1.3) / 2.6, 0.0, 1.0);
+  vec3 cBull = mix(mix(uCyan, uEmerald, smoothstep(0.0, 0.52, cy)), uAccent, smoothstep(0.48, 1.0, cy));
+  vec3 cBear = mix(mix(uOrchid, uCoral, smoothstep(0.0, 0.52, cy)), uGold, smoothstep(0.55, 1.0, cy));
+  vec3 cCandle = mix(cBear, cBull, aTone) * (0.9 + scan * 0.55);
+
+  float layer = aRing.z;
+  vec3 cRing;
+  if (layer < 0.5) cRing = mix(uCyan, uAzure, ringPhase);
+  else if (layer < 1.5) cRing = mix(uEmerald, uAccent, ringPhase);
+  else if (layer < 2.5) cRing = mix(uCoral, uOrchid, ringPhase);
+  else cRing = mix(uGold, uCoral, ringPhase);
+  cRing = mix(cRing, mix(uGold, uCyan, mod(layer, 2.0)) * 1.35, ringPulse * 0.72);
+
+  float wBand = fract(aWave.x * 0.095 - aWave.z * 0.08 + uTime * 0.045 + h * 0.38);
+  vec3 cWave = prism(wBand);
+  cWave = mix(cWave, mix(uGold, uCoral, 0.5 + 0.5 * sin(aWave.x * 0.6 - uTime)), smoothstep(0.32, 0.88, crest) * 0.65);
+
+  float isRed = step(0.12, aLogoCol.r - max(aLogoCol.g, aLogoCol.b));
+  float isGreen = step(0.07, aLogoCol.g - max(aLogoCol.r, aLogoCol.b));
   float beat = 0.5 + 0.5 * cos(uTime * 3.92699);
-  float pr = uTime > 0.0 ? mix(0.12, 1.0, beat) : 1.0;
-  float pg = uTime > 0.0 ? mix(0.12, 1.0, 1.0 - beat) : 1.0;
-  vec3 cLogo = aLogoCol * mix(1.0, pr * 1.5, isRed) * mix(1.0, pg * 1.5, isGreen);
+  float pr = uTime > 0.0 ? mix(0.28, 1.0, beat) : 1.0;
+  float pg = uTime > 0.0 ? mix(0.28, 1.0, 1.0 - beat) : 1.0;
+  vec3 logoTint = mix(uCyan, uOrchid, 0.5 + 0.5 * sin(aLogo.x * 0.85 - uTime * 0.9));
+  vec3 cLogoBase = mix(vec3(0.84, 0.9, 1.0), logoTint, 0.22);
+  vec3 cLogo = mix(cLogoBase, vec3(1.0, 0.05, 0.22) * pr * 1.45, isRed);
+  cLogo = mix(cLogo, vec3(0.04, 1.0, 0.42) * pg * 1.45, isGreen);
 
-  vec3 cGlobe = mix(uBase, uAccent, step(0.88, aSeed));
-  vec3 cCandle = mix(uBear, uAccent, aTone);
-  vec3 cRing = mix(uBase, uAccent, 0.35 + 0.6 * step(0.5, fract(aSeed * 7.0)));
-  vec3 cWave = mix(uBase * 0.5, uAccent, smoothstep(-0.3, 0.5, h));
   vec3 col = cGlobe * w0 + cCandle * w1 + cRing * w2 + cWave * w3 + cLogo * w4;
-  col = max(mix(vec3(dot(col, vec3(0.299, 0.587, 0.114))), col, uSat), 0.0);
 
   float swirl = sin(ts * 3.14159);
-  vec3 q = p * 0.45 + vec3(0.0, 0.0, uTime * 0.06);
+  vec3 q = p * 0.45 + vec3(0.0, 0.0, uTime * 0.08);
   vec3 n = vec3(snoise(q), snoise(q + vec3(31.4, 0.0, 0.0)), snoise(q + vec3(0.0, -17.2, 9.1)));
-  p += n * (0.025 + swirl * 0.95 + uVel * 0.6);
+  p += n * (0.024 + swirl * 0.92 + uVel * 0.58);
+  col += prism(aSeed + uTime * 0.12) * (swirl * 0.35 + uVel * 0.16);
 
   float it = clamp(uIntro * 1.5 - aSeed * 0.5, 0.0, 1.0);
   it = 1.0 - pow(1.0 - it, 3.0);
@@ -192,20 +265,33 @@ void main() {
 
   vec4 wp = modelMatrix * vec4(p, 1.0);
   vec2 dv = wp.xy - uMouse.xy;
-  float f = uMouseOn * smoothstep(1.3, 0.0, length(dv));
-  wp.xy += normalize(dv + vec2(0.0001)) * f * 0.55;
-  wp.z += f * 0.5;
+  float dist = length(dv);
+  float f = uMouseOn * smoothstep(1.45, 0.0, dist);
+  vec2 radial = normalize(dv + vec2(0.0001));
+  vec2 tangent = vec2(-radial.y, radial.x);
+  wp.xy += (radial * 0.52 + tangent * 0.24) * f;
+  wp.z += f * 0.55;
+
+  float angle = atan(dv.y, dv.x);
+  vec3 mouseHue = prism(angle / 6.28318 + uTime * 0.25);
+  col = mix(col, mouseHue * 1.45, f * 0.85);
+
+  col = max(mix(vec3(dot(col, vec3(0.2126, 0.7152, 0.0722))), col, uSat), 0.0);
 
   vec4 mv = viewMatrix * wp;
   vec4 center = viewMatrix * modelMatrix * vec4(0.0, 0.0, 0.0, 1.0);
   gl_Position = projectionMatrix * mv;
 
-  float twinkle = 0.75 + 0.25 * sin(uTime * 1.7 + aSeed * 60.0);
-  gl_PointSize = uSize * uScale * (0.6 + aSeed * 0.8) * twinkle * (1.0 + swirl * 0.6 + f) / -mv.z;
+  float sizeGain = mix(1.0, 0.78, w1) * mix(1.0, 0.84, w4);
+  float energy = aHub * w0 * 0.55 + scan * w1 * 0.4 + ringPulse * w2 * 0.6 + crest * w3 * 0.3;
+  float twinkle = 0.8 + 0.2 * sin(uTime * 2.1 + aSeed * 62.0);
+  gl_PointSize = uSize * uScale * sizeGain * (0.62 + aSeed * 0.76 + energy * 0.44) * twinkle * (1.0 + swirl * 0.52 + f * 0.8) / -mv.z;
 
   float facing = smoothstep(-2.4, 1.6, mv.z - center.z);
-  vAlpha = mix(1.0, mix(0.18, 1.0, facing), w0 + w2) * mix(1.0, 0.45, w4) * it;
-  vColor = col + f * uAccent * 0.6;
+  float density = 0.84 * w0 + 0.36 * w1 + 0.58 * w2 + 0.86 * w3 + 0.34 * w4;
+  vAlpha = mix(1.0, mix(0.24, 1.0, facing), w0 + w2) * density * it;
+  vSpark = clamp(0.18 + energy * 0.55 + f * 0.6 + swirl * 0.3, 0.0, 1.0);
+  vColor = col;
 }
 `
 
@@ -214,24 +300,32 @@ uniform float uOpacity;
 uniform float uBoost;
 varying vec3 vColor;
 varying float vAlpha;
+varying float vSpark;
 
 void main() {
   float d = length(gl_PointCoord - 0.5);
   if (d > 0.5) discard;
-  float a = pow(smoothstep(0.5, 0.0, d), 1.6) * vAlpha * uOpacity;
-  gl_FragColor = vec4(vColor * uBoost, min(1.0, a * uBoost));
+  float halo = pow(smoothstep(0.5, 0.0, d), 1.9);
+  float core = smoothstep(0.2, 0.0, d);
+  vec3 c = vColor * (0.95 + core * (0.48 + vSpark * 0.36));
+  float a = (halo * 0.84 + core * 0.3) * vAlpha * uOpacity;
+  gl_FragColor = vec4(c * uBoost, min(1.0, a * uBoost));
+  #include <colorspace_fragment>
 }
 `
 
 const arcsVert = /* glsl */ `
 attribute float aT;
 attribute float aOff;
+attribute float aRoute;
 varying float vT;
 varying float vOff;
+varying float vRoute;
 
 void main() {
   vT = aT;
   vOff = aOff;
+  vRoute = aRoute;
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }
 `
@@ -239,16 +333,38 @@ void main() {
 const arcsFrag = /* glsl */ `
 uniform float uTime;
 uniform float uOpacity;
-uniform vec3 uColor;
+uniform vec3 uAccent;
+uniform vec3 uCyan;
+uniform vec3 uCoral;
+uniform vec3 uGold;
+uniform vec3 uOrchid;
+uniform vec3 uEmerald;
 varying float vT;
 varying float vOff;
+varying float vRoute;
+
+vec3 routeColor(float r) {
+  float s = fract(r) * 5.0;
+  if (s < 1.0) return mix(uCyan, uAccent, s);
+  if (s < 2.0) return mix(uAccent, uGold, s - 1.0);
+  if (s < 3.0) return mix(uGold, uCoral, s - 2.0);
+  if (s < 4.0) return mix(uCoral, uOrchid, s - 3.0);
+  return mix(uOrchid, uEmerald, s - 4.0);
+}
 
 void main() {
-  float head = fract(uTime * 0.16 + vOff);
-  float d = head - vT;
-  float trail = smoothstep(0.3, 0.0, d) * step(0.0, d);
-  float a = (0.06 + trail * 1.2) * uOpacity;
-  gl_FragColor = vec4(uColor * (1.0 + trail), a);
+  float head1 = fract(uTime * 0.19 + vOff);
+  float d1 = head1 - vT;
+  float trail1 = smoothstep(0.34, 0.0, d1) * step(0.0, d1);
+  float head2 = fract(uTime * 0.19 + vOff + 0.5);
+  float d2 = head2 - vT;
+  float trail2 = smoothstep(0.24, 0.0, d2) * step(0.0, d2) * 0.7;
+  float trail = max(trail1, trail2);
+  vec3 c = mix(routeColor(vRoute), routeColor(vRoute + 0.28), vT);
+  vec3 outCol = c * (1.05 + pow(trail, 1.8) * 1.15);
+  float a = (0.14 + trail * 1.25) * uOpacity;
+  gl_FragColor = vec4(outCol, min(1.0, a));
+  #include <colorspace_fragment>
 }
 `
 
@@ -257,30 +373,47 @@ uniform float uTime;
 uniform float uScale;
 attribute float aSeed;
 varying float vA;
+varying float vSeed;
 
 void main() {
   vec3 p = position;
-  p.y += sin(uTime * 0.2 + aSeed * 30.0) * 0.15;
+  p.y += sin(uTime * 0.24 + aSeed * 32.0) * 0.18;
+  p.x += cos(uTime * 0.18 + aSeed * 21.0) * 0.1;
   vec4 mv = modelViewMatrix * vec4(p, 1.0);
   gl_Position = projectionMatrix * mv;
-  gl_PointSize = (0.012 + aSeed * 0.02) * uScale / -mv.z;
-  vA = 0.15 + aSeed * 0.3;
+  float twinkle = 0.72 + 0.28 * sin(uTime * 1.6 + aSeed * 45.0);
+  gl_PointSize = (0.017 + aSeed * 0.026) * uScale * twinkle / -mv.z;
+  vA = (0.28 + aSeed * 0.4) * twinkle;
+  vSeed = aSeed;
 }
 `
 
 const dustFrag = /* glsl */ `
-uniform vec3 uColor;
+uniform vec3 uAccent;
+uniform vec3 uCyan;
+uniform vec3 uCoral;
+uniform vec3 uGold;
+uniform vec3 uOrchid;
+uniform vec3 uAzure;
 varying float vA;
+varying float vSeed;
 
 void main() {
   float d = length(gl_PointCoord - 0.5);
   if (d > 0.5) discard;
-  gl_FragColor = vec4(uColor, smoothstep(0.5, 0.0, d) * vA);
+  float s = fract(vSeed * 6.0);
+  vec3 c = s < 0.17 ? uCyan : s < 0.34 ? uAccent : s < 0.51 ? uCoral : s < 0.68 ? uGold : s < 0.85 ? uOrchid : uAzure;
+  gl_FragColor = vec4(c * 1.15, pow(smoothstep(0.5, 0.0, d), 1.6) * vA);
+  #include <colorspace_fragment>
 }
 `
 
 const FinishShader = {
-  uniforms: { tDiffuse: { value: null }, uTime: { value: 0 } },
+  uniforms: {
+    tDiffuse: { value: null },
+    uTime: { value: 0 },
+    uMorph: { value: 0 },
+  },
   vertexShader: /* glsl */ `
 varying vec2 vUv;
 void main() {
@@ -291,6 +424,7 @@ void main() {
   fragmentShader: /* glsl */ `
 uniform sampler2D tDiffuse;
 uniform float uTime;
+uniform float uMorph;
 varying vec2 vUv;
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
@@ -298,10 +432,28 @@ float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.545
 void main() {
   vec2 c = vUv - 0.5;
   float r = dot(c, c);
-  vec2 off = c * r * 0.014;
+  vec2 off = c * r * 0.008;
   vec3 col = vec3(texture2D(tDiffuse, vUv + off).r, texture2D(tDiffuse, vUv).g, texture2D(tDiffuse, vUv - off).b);
-  col *= 1.0 - r * 0.55;
-  col += (hash(vUv * 900.0 + fract(uTime)) - 0.5) * 0.03;
+
+  float mx = max(col.r, max(col.g, col.b));
+  if (mx > 0.001) {
+    float mapped = mx / (1.0 + max(0.0, mx - 0.85) * 0.55);
+    col *= mapped / mx;
+  }
+
+  float lum = dot(col, vec3(0.2126, 0.7152, 0.0722));
+  col = max(mix(vec3(lum), col, 1.16), 0.0);
+
+  vec2 a1 = vec2(0.72 + sin(uTime * 0.14) * 0.12, 0.44 + cos(uTime * 0.11) * 0.14);
+  vec2 a2 = vec2(0.24 + cos(uTime * 0.12) * 0.12, 0.62 + sin(uTime * 0.15) * 0.14);
+  float g1 = exp(-dot(vUv - a1, vUv - a1) * 4.5);
+  float g2 = exp(-dot(vUv - a2, vUv - a2) * 5.0);
+  vec3 aura1 = mix(vec3(0.0, 0.78, 1.0), vec3(0.75, 1.0, 0.25), 0.5 + 0.5 * sin(uMorph * 1.5 + uTime * 0.12));
+  vec3 aura2 = mix(vec3(1.0, 0.16, 0.52), vec3(0.62, 0.24, 1.0), 0.5 + 0.5 * cos(uMorph * 1.3 - uTime * 0.1));
+  col += aura1 * g1 * 0.042 + aura2 * g2 * 0.036;
+
+  col *= 1.0 - r * 0.42;
+  col += (hash(vUv * 900.0 + fract(uTime)) - 0.5) * 0.018;
   gl_FragColor = vec4(col, 1.0);
 }
 `,
@@ -365,6 +517,14 @@ export class ArxScene {
   private last = 0
   private elapsed = 0
   private small: boolean
+  private onVis = () => {
+    if (document.hidden) {
+      this.renderer.setAnimationLoop(null)
+      this.last = 0
+    } else {
+      this.renderer.setAnimationLoop(this.tick)
+    }
+  }
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -373,11 +533,12 @@ export class ArxScene {
   ) {
     this.small = matchMedia('(max-width: 767px)').matches
     this.renderer = new WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance' })
+    this.renderer.toneMapping = NoToneMapping
     this.renderer.setClearColor(BG, 1)
     this.scene.background = new Color(BG)
     this.scene.add(this.group)
 
-    const count = this.small ? 7500 : 14000
+    const count = this.small ? 8000 : 15500
     const rnd = mulberry(7)
 
     this.pointsMat = new ShaderMaterial({
@@ -389,18 +550,22 @@ export class ArxScene {
       uniforms: {
         uMorph: { value: 0 },
         uTime: { value: 0 },
-        uSize: { value: this.small ? 0.046 : 0.028 },
-        uSat: { value: this.small ? 1.55 : 1.2 },
-        uBoost: { value: this.small ? 1.6 : 1 },
+        uSize: { value: this.small ? 0.052 : 0.032 },
+        uSat: { value: this.small ? 1.38 : 1.32 },
+        uBoost: { value: this.small ? 1.25 : 1.0 },
         uScale: { value: 1 },
         uIntro: { value: reduced ? 1 : 0 },
         uVel: { value: 0 },
         uMouse: { value: this.mouse },
         uMouseOn: { value: 0 },
         uOpacity: { value: 1 },
-        uBase: { value: COLORS.base },
-        uAccent: { value: COLORS.accent },
-        uBear: { value: COLORS.bear },
+        uAccent: { value: PALETTE.accent },
+        uCyan: { value: PALETTE.cyan },
+        uEmerald: { value: PALETTE.emerald },
+        uAzure: { value: PALETTE.azure },
+        uCoral: { value: PALETTE.coral },
+        uGold: { value: PALETTE.gold },
+        uOrchid: { value: PALETTE.orchid },
       },
     })
     this.points = new Points(this.buildPoints(count, rnd), this.pointsMat)
@@ -413,7 +578,16 @@ export class ArxScene {
       transparent: true,
       depthWrite: false,
       blending: AdditiveBlending,
-      uniforms: { uTime: { value: 0 }, uOpacity: { value: 1 }, uColor: { value: COLORS.accent } },
+      uniforms: {
+        uTime: { value: 0 },
+        uOpacity: { value: 1 },
+        uAccent: { value: PALETTE.accent },
+        uCyan: { value: PALETTE.cyan },
+        uCoral: { value: PALETTE.coral },
+        uGold: { value: PALETTE.gold },
+        uOrchid: { value: PALETTE.orchid },
+        uEmerald: { value: PALETTE.emerald },
+      },
     })
     this.group.add(new LineSegments(this.buildArcs(), this.arcsMat))
 
@@ -423,15 +597,24 @@ export class ArxScene {
       transparent: true,
       depthWrite: false,
       blending: AdditiveBlending,
-      uniforms: { uTime: { value: 0 }, uScale: { value: 1 }, uColor: { value: COLORS.base } },
+      uniforms: {
+        uTime: { value: 0 },
+        uScale: { value: 1 },
+        uAccent: { value: PALETTE.accent },
+        uCyan: { value: PALETTE.cyan },
+        uCoral: { value: PALETTE.coral },
+        uGold: { value: PALETTE.gold },
+        uOrchid: { value: PALETTE.orchid },
+        uAzure: { value: PALETTE.azure },
+      },
     })
-    this.dust = new Points(this.buildDust(this.small ? 260 : 600, rnd), this.dustMat)
+    this.dust = new Points(this.buildDust(this.small ? 300 : 720, rnd), this.dustMat)
     this.scene.add(this.dust)
 
     if (!this.small) {
       this.composer = new EffectComposer(this.renderer)
       this.composer.addPass(new RenderPass(this.scene, this.camera))
-      this.composer.addPass(new UnrealBloomPass(new Vector2(512, 512), 0.55, 0.4, 0.28))
+      this.composer.addPass(new UnrealBloomPass(new Vector2(512, 512), 0.34, 0.38, 0.52))
       this.composer.addPass(new OutputPass())
       this.finish = new ShaderPass(FinishShader)
       this.composer.addPass(this.finish)
@@ -439,6 +622,7 @@ export class ArxScene {
 
     this.ro = new ResizeObserver(() => this.resize())
     this.ro.observe(canvas)
+    document.addEventListener('visibilitychange', this.onVis)
     this.resize()
     if (logoUrl) this.loadLogo(logoUrl).catch(() => undefined)
     this.renderer.setAnimationLoop(this.tick)
@@ -456,6 +640,7 @@ export class ArxScene {
 
   dispose() {
     this.renderer.setAnimationLoop(null)
+    document.removeEventListener('visibilitychange', this.onVis)
     this.ro.disconnect()
     this.geos.forEach((g) => g.dispose())
     ;[this.pointsMat, this.arcsMat, this.dustMat].forEach((m) => m.dispose())
@@ -485,13 +670,15 @@ export class ArxScene {
     const col = g.getAttribute('aLogoCol') as BufferAttribute
     const k = LOGO_W / W
     const rnd = mulberry(11)
+    const tmp = new Color()
     for (let i = 0; i < pos.count; i++) {
       const j = Math.floor(rnd() * n) * 2
       const x = px[j]!
       const y = px[j + 1]!
       const o = (y * W + x) * 4
       pos.setXYZ(i, (x - W / 2 + rnd() - 0.5) * k, (H / 2 - y + rnd() - 0.5) * k, (rnd() - 0.5) * 0.14)
-      col.setXYZ(i, (data[o]! / 255) * 0.85, (data[o + 1]! / 255) * 0.85, (data[o + 2]! / 255) * 0.85)
+      tmp.setRGB(data[o]! / 255, data[o + 1]! / 255, data[o + 2]! / 255, SRGBColorSpace)
+      col.setXYZ(i, tmp.r, tmp.g, tmp.b)
     }
     pos.needsUpdate = true
     col.needsUpdate = true
@@ -506,6 +693,8 @@ export class ArxScene {
     const logoCol = new Float32Array(count * 3)
     const seed = new Float32Array(count)
     const tone = new Float32Array(count)
+    const hub = new Float32Array(count)
+    const hubVecs = HUBS.map(([lat, lon]) => fromLatLon(lat, lon, 1))
     const candles = buildCandles(rnd)
     const golden = Math.PI * (3 - Math.sqrt(5))
     const step = CHART_W / CANDLES
@@ -515,11 +704,22 @@ export class ArxScene {
     for (let i = 0; i < count; i++) {
       const y = 1 - (i / (count - 1)) * 2
       const r = Math.sqrt(1 - y * y)
-      const gx = Math.cos(golden * i) * r * RADIUS
-      const gz = Math.sin(golden * i) * r * RADIUS
-      pos.set([gx, y * RADIUS, gz], i * 3)
-      logo.set([gx, y * RADIUS, gz], i * 3)
-      logoCol.set([COLORS.base.r, COLORS.base.g, COLORS.base.b], i * 3)
+      const ux = Math.cos(golden * i) * r
+      const uz = Math.sin(golden * i) * r
+      const gx = ux * RADIUS
+      const gy = y * RADIUS
+      const gz = uz * RADIUS
+      pos.set([gx, gy, gz], i * 3)
+      logo.set([gx, gy, gz], i * 3)
+      logoCol.set([PALETTE.cyan.r, PALETTE.cyan.g, PALETTE.cyan.b], i * 3)
+
+      let maxDot = -1
+      for (let h = 0; h < hubVecs.length; h++) {
+        const hv = hubVecs[h]!
+        const d = ux * hv.x + y * hv.y + uz * hv.z
+        if (d > maxDot) maxDot = d
+      }
+      hub[i] = Math.exp(-Math.max(0, 1 - maxDot) * 42)
 
       const ci = i % CANDLES
       const c = candles[ci]!
@@ -533,11 +733,11 @@ export class ArxScene {
       )
       tone[i] = c.close >= c.open ? 1 : 0
 
-      ring.set([rnd() * Math.PI * 2, rnd() * Math.PI * 2, i % 3], i * 3)
+      ring.set([rnd() * Math.PI * 2, rnd() * Math.PI * 2, i % 4], i * 3)
 
       const col = i % cols
       const row = Math.floor(i / cols)
-      wave.set([(col / (cols - 1) - 0.5) * 9 + (rnd() - 0.5) * 0.02, 0, (row / Math.max(rows - 1, 1) - 0.5) * 5], i * 3)
+      wave.set([(col / (cols - 1) - 0.5) * 9.4 + (rnd() - 0.5) * 0.02, 0, (row / Math.max(rows - 1, 1) - 0.5) * 5.4], i * 3)
 
       seed[i] = rnd()
     }
@@ -551,6 +751,7 @@ export class ArxScene {
     g.setAttribute('aLogoCol', new BufferAttribute(logoCol, 3))
     g.setAttribute('aSeed', new BufferAttribute(seed, 1))
     g.setAttribute('aTone', new BufferAttribute(tone, 1))
+    g.setAttribute('aHub', new BufferAttribute(hub, 1))
     this.geos.push(g)
     return g
   }
@@ -560,32 +761,36 @@ export class ArxScene {
     const pos: number[] = []
     const ts: number[] = []
     const offs: number[] = []
+    const routes: number[] = []
     ROUTES.forEach(([a, b], k) => {
       const va = fromLatLon(...HUBS[a]!, 1)
       const vb = fromLatLon(...HUBS[b]!, 1)
       const w = va.angleTo(vb)
       const s = Math.sin(w)
-      const lift = 0.1 + w * 0.14
+      const lift = 0.11 + w * 0.15
       const pt = (t: number) =>
         va
           .clone()
           .multiplyScalar(Math.sin((1 - t) * w) / s)
           .addScaledVector(vb, Math.sin(t * w) / s)
           .normalize()
-          .multiplyScalar(RADIUS * (1.01 + lift * Math.sin(Math.PI * t)))
+          .multiplyScalar(RADIUS * (1.012 + lift * Math.sin(Math.PI * t)))
       const off = (k * 0.618) % 1
+      const rk = k / ROUTES.length
       for (let i = 0; i < SEG; i++) {
         const p0 = pt(i / SEG)
         const p1 = pt((i + 1) / SEG)
         pos.push(p0.x, p0.y, p0.z, p1.x, p1.y, p1.z)
         ts.push(i / SEG, (i + 1) / SEG)
         offs.push(off, off)
+        routes.push(rk, rk)
       }
     })
     const g = new BufferGeometry()
     g.setAttribute('position', new BufferAttribute(new Float32Array(pos), 3))
     g.setAttribute('aT', new BufferAttribute(new Float32Array(ts), 1))
     g.setAttribute('aOff', new BufferAttribute(new Float32Array(offs), 1))
+    g.setAttribute('aRoute', new BufferAttribute(new Float32Array(routes), 1))
     this.geos.push(g)
     return g
   }
@@ -633,15 +838,15 @@ export class ArxScene {
     this.last = now
     this.elapsed += dt
     const t = this.reduced ? 0 : this.elapsed
-    const k = this.reduced ? 1 : 1 - Math.exp(-dt * 5)
+    const k = this.reduced ? 1 : 1 - Math.exp(-dt * 6.5)
     for (const key of SCENE_KEYS) this.cur[key] += (this.state[key] - this.cur[key]) * k
 
     const p = this.pointer
-    const pk = 1 - Math.exp(-dt * 6)
+    const pk = 1 - Math.exp(-dt * 7)
     p.x += (p.tx - p.x) * pk
     p.y += (p.ty - p.y) * pk
     const active = !this.reduced && this.elapsed - p.last < 2.5 ? 1 : 0
-    this.mouseOn += (active - this.mouseOn) * (1 - Math.exp(-dt * 3))
+    this.mouseOn += (active - this.mouseOn) * (1 - Math.exp(-dt * 3.5))
 
     this.velTarget *= Math.exp(-dt * 4)
     this.vel += (this.velTarget - this.vel) * (1 - Math.exp(-dt * 6))
@@ -654,34 +859,35 @@ export class ArxScene {
     const shift = Math.min(1, Math.max(0, (this.aspect - 0.7) / 0.9))
     const fit = narrow ? wWide * Math.min(2.2, 1.15 / this.aspect) + (1 - wWide) * 1.25 : 1
 
-    if (!this.reduced) this.spin += dt * (0.07 + this.vel * 0.5)
+    if (!this.reduced) this.spin += dt * (0.08 + this.vel * 0.52)
     this.group.position.set(c.x * shift, c.y + (narrow ? 0.4 * wSpin : 0), 0)
     this.group.rotation.set(
-      c.tilt - p.y * 0.1,
-      (this.spin + p.x * 0.3) * wSpin + p.x * 0.08 * (1 - wSpin) + Math.sin(t * 0.15) * 0.18 * hat(m, 3),
+      c.tilt - p.y * 0.11,
+      (this.spin + p.x * 0.32) * wSpin + p.x * 0.08 * (1 - wSpin) + Math.sin(t * 0.16) * 0.18 * hat(m, 3),
       0,
     )
-    this.camera.position.set(Math.sin(t * 0.07) * 0.18, Math.cos(t * 0.05) * 0.12, c.z * fit)
+    this.camera.position.set(Math.sin(t * 0.075) * 0.18, Math.cos(t * 0.055) * 0.12, c.z * fit)
     this.camera.lookAt(0, 0, 0)
-    this.camera.rotation.z += Math.sin(t * 0.1) * 0.01 + this.vel * 0.015
+    this.camera.rotation.z += Math.sin(t * 0.11) * 0.012 + this.vel * 0.015
     this.camera.updateMatrixWorld()
     this.updateMouse()
 
     const u = this.pointsMat.uniforms
     u.uMorph!.value = m
     u.uTime!.value = t
-    u.uIntro!.value = this.reduced ? 1 : Math.min(1, this.elapsed / 2.8)
+    u.uIntro!.value = this.reduced ? 1 : Math.min(1, this.elapsed / 2.4)
     u.uVel!.value = this.vel
     u.uMouseOn!.value = this.mouseOn
     u.uOpacity!.value = 1
     this.arcsMat.uniforms.uTime!.value = t
-    this.arcsMat.uniforms.uOpacity!.value = Math.max(0, 1 - m * 2.5) * Math.min(1, u.uIntro!.value * 1.2) * (this.small ? 1.6 : 1)
+    this.arcsMat.uniforms.uOpacity!.value = Math.max(0, 1 - m * 2.4) * Math.min(1, u.uIntro!.value * 1.25) * (this.small ? 1.35 : 1.1)
     this.dustMat.uniforms.uTime!.value = t
-    this.dust.rotation.y = this.spin * 0.15 + p.x * 0.05
+    this.dust.rotation.y = this.spin * 0.16 + p.x * 0.05
     this.dust.rotation.x = p.y * 0.03
 
     if (this.composer) {
       this.finish!.uniforms.uTime!.value = this.elapsed
+      this.finish!.uniforms.uMorph!.value = m
       this.composer.render(dt)
     } else this.renderer.render(this.scene, this.camera)
   }

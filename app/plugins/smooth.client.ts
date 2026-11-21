@@ -13,6 +13,21 @@ export default defineNuxtPlugin((nuxtApp) => {
     gsap.ticker.lagSmoothing(0)
   }
 
+  if (!reduced && matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    document.addEventListener(
+      'pointermove',
+      (e) => {
+        if (e.pointerType !== 'mouse') return
+        const card = (e.target as Element | null)?.closest<HTMLElement>('.panel')
+        if (!card) return
+        const r = card.getBoundingClientRect()
+        card.style.setProperty('--px', `${e.clientX - r.left}px`)
+        card.style.setProperty('--py', `${e.clientY - r.top}px`)
+      },
+      { passive: true },
+    )
+  }
+
   let first = true
   nuxtApp.hook('page:finish', () => {
     if (!first && !location.hash) lenis?.scrollTo(0, { immediate: true, force: true })

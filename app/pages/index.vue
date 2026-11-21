@@ -4,25 +4,56 @@ import { bySlug, compare, facts, groups, homeFaq, homeSteps, inGroup, kinetic, r
 
 useSeoMeta({
   title: null,
+  description: site.description,
   ogTitle: site.title,
   ogDescription: site.description,
+  twitterTitle: site.title,
+  twitterDescription: site.description,
+})
+
+useHead({
+  script: [
+    {
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: homeFaq.map((f) => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
+      }),
+    },
+  ],
 })
 
 const stages = groups.map((g) => ({ ...g, items: inGroup(g.id) }))
 const trading = inGroup('trading')
 const digital = inGroup('digital')
+const stageTint = [
+  'bg-[linear-gradient(155deg,rgb(0_238_255/.12),rgb(61_139_255/.05)_36%,transparent_66%)]',
+  'bg-[linear-gradient(155deg,rgb(214_251_97/.13),rgb(25_255_155/.05)_36%,transparent_66%)]',
+  'bg-[linear-gradient(155deg,rgb(255_61_127/.12),rgb(255_201_51/.05)_36%,transparent_66%)]',
+  'bg-[linear-gradient(155deg,rgb(217_92_255/.12),rgb(0_238_255/.05)_36%,transparent_66%)]',
+]
+const compareTint = [
+  'bg-[linear-gradient(155deg,rgb(0_238_255/.11),rgb(214_251_97/.04)_38%,transparent_65%)]',
+  'bg-[linear-gradient(155deg,rgb(214_251_97/.12),rgb(255_201_51/.05)_38%,transparent_65%)]',
+]
 const bento: Record<string, string> = {
-  'website-creation': 'md:col-span-2 md:row-span-2 bg-[linear-gradient(160deg,rgb(214_251_97/.12),transparent_55%)]',
-  'business-email': 'md:col-start-4 md:row-span-2 md:row-start-1',
+  'website-creation': 'md:col-span-2 md:row-span-2 bg-[linear-gradient(160deg,rgb(214_251_97/.15),rgb(0_238_255/.05)_38%,transparent_62%)]',
+  'business-email': 'md:col-start-4 md:row-span-2 md:row-start-1 bg-[linear-gradient(160deg,rgb(0_238_255/.12),rgb(25_255_155/.04)_38%,transparent_62%)]',
 }
 </script>
 
 <template>
   <div>
-    <section v-bind="sceneAttrs({ morph: 0, x: 1.7, z: 7, tilt: 0.35 })" class="relative flex min-h-[calc(100dvh-3.5rem)] md:min-h-[calc(100dvh-4.5rem)] items-center py-16">
+    <section v-bind="sceneAttrs({ morph: 0, x: 1.7, z: 7, tilt: 0.35 })" class="relative flex min-h-[calc(100dvh-3.5rem)] items-center overflow-x-clip py-16 md:min-h-[calc(100dvh-4.5rem)]">
       <div class="shell">
-        <div class="max-w-2xl">
-          <ScrambleText text="Brokerage technology partner" tag="p" class="eyebrow" :delay="300" />
+        <div class="relative max-w-2xl">
+          <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 -inset-y-10 -z-10 rounded-full bg-[radial-gradient(ellipse_at_center,rgb(12_13_18/.72)_0%,rgb(12_13_18/.32)_52%,transparent_78%)] md:-inset-x-10 md:-inset-y-12" />
+          <ScrambleText text="Brokerage technology partner" tag="p" class="eyebrow eyebrow-pill" :delay="300" />
           <SplitText
             text="Launch your brokerage with *one* partner"
             tag="h1"
@@ -56,7 +87,8 @@ const bento: Record<string, string> = {
           <article
             v-for="(s, i) in stages"
             :key="s.id"
-            class="panel !bg-ink-900/92 p-7 md:sticky md:p-9"
+            class="panel panel-lift !bg-[rgb(14_16_23/.9)] p-7 md:sticky md:p-9"
+            :class="stageTint[i]"
             :style="{ top: `calc(7.5rem + ${i * 1.5}rem)` }"
           >
             <div class="flex items-center justify-between gap-4">
@@ -67,7 +99,7 @@ const bento: Record<string, string> = {
             <p class="mt-3 max-w-[48ch] leading-relaxed text-ink-300">{{ s.text }}</p>
             <ul class="mt-7 flex flex-wrap gap-2">
               <li v-for="it in s.items" :key="it.slug">
-                <NuxtLink :to="`/${it.slug}`" class="inline-flex h-10 items-center gap-2 rounded-full border border-white/10 bg-ink-950/50 px-4 text-sm text-ink-100 transition-colors hover:border-accent hover:text-accent">
+                <NuxtLink :to="`/${it.slug}`" class="inline-flex h-10 items-center gap-2 rounded-full border border-white/14 bg-ink-950/65 px-4 text-sm text-ink-100 transition-[border-color,color,background-color] duration-200 hover:border-accent hover:bg-ink-950/90 hover:text-accent">
                   <component :is="it.icon" :size="16" class="text-accent" />
                   {{ it.label }}
                 </NuxtLink>
@@ -78,10 +110,10 @@ const bento: Record<string, string> = {
       </div>
     </section>
 
-    <section class="relative border-y border-white/8 bg-ink-950/60 backdrop-blur-md">
+    <section class="relative border-y border-white/12 bg-ink-950/76 backdrop-blur-2xl shadow-[inset_0_1px_0_rgb(255_255_255/.08)]">
       <dl class="shell grid grid-cols-2 md:grid-cols-4">
-        <div v-for="(f, i) in facts" :key="f.label" class="border-white/8 py-10 pr-6 md:border-l md:pl-8 md:first:border-l-0 md:first:pl-0" v-reveal="i * 80">
-          <dt class="font-display text-6xl font-semibold tracking-tight text-accent md:text-7xl">
+        <div v-for="(f, i) in facts" :key="f.label" class="border-white/10 py-10 pr-6 md:border-l md:pl-8 md:first:border-l-0 md:first:pl-0" v-reveal="i * 80">
+          <dt class="font-display text-6xl font-semibold tracking-tight tabular-nums text-accent [text-shadow:0_0_32px_rgb(214_251_97/.3)] md:text-7xl">
             <ScrambleText :text="f.value" :delay="i * 120" />
           </dt>
           <dd class="mt-3 max-w-[22ch] font-mono text-xs leading-relaxed tracking-wide text-ink-300 uppercase">{{ f.label }}</dd>
@@ -95,12 +127,12 @@ const bento: Record<string, string> = {
         <p class="lede mt-6" v-reveal="120">Fast execution, deep liquidity and social trading tools, all under your brand.</p>
       </div>
       <div class="shell mt-[60dvh] md:mt-0">
-        <ul class="grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
-          <li v-for="(t, i) in trading" :key="t.slug" class="border-t border-white/15 pt-6" v-reveal="i * 80">
-            <component :is="t.icon" :size="26" class="text-accent" />
-            <h3 class="mt-4 font-display text-2xl font-semibold tracking-tight text-ink-50">{{ t.label }}</h3>
+        <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <li v-for="(t, i) in trading" :key="t.slug" class="panel panel-lift flex flex-col p-6 md:p-7" v-reveal="i * 80">
+            <span class="icon-badge size-11"><component :is="t.icon" :size="22" /></span>
+            <h3 class="mt-6 font-display text-2xl font-semibold tracking-tight text-ink-50">{{ t.label }}</h3>
             <p class="mt-2 leading-relaxed text-ink-300">{{ t.blurb }}</p>
-            <NuxtLink :to="`/${t.slug}`" class="link-arrow mt-4 text-sm" :aria-label="`Learn more about ${t.label}`">
+            <NuxtLink :to="`/${t.slug}`" class="link-arrow mt-auto pt-6 text-sm" :aria-label="`Learn more about ${t.label}`">
               Learn more
               <PhArrowRight :size="14" />
             </NuxtLink>
@@ -113,13 +145,13 @@ const bento: Record<string, string> = {
       <div class="shell">
         <SplitText text="Offshore or regulated? We set up *both*." class="display max-w-3xl text-5xl text-ink-50 md:text-6xl" />
         <div class="mt-14 grid gap-6 md:grid-cols-2">
-          <article v-for="(c, i) in compare" :key="c.slug" class="panel flex flex-col p-7 md:p-10" v-reveal="i * 100">
-            <component :is="bySlug[c.slug]!.icon" :size="30" class="text-accent" />
+          <article v-for="(c, i) in compare" :key="c.slug" class="panel panel-lift flex flex-col p-7 md:p-10" :class="compareTint[i]" v-reveal="i * 100">
+            <span class="icon-badge size-12"><component :is="bySlug[c.slug]!.icon" :size="26" /></span>
             <h3 class="mt-6 font-serif text-5xl text-ink-50 italic">{{ c.title }}</h3>
             <p class="mt-4 max-w-[44ch] leading-relaxed text-ink-300">{{ c.text }}</p>
             <ul class="mt-8 space-y-3">
               <li v-for="p in c.points" :key="p" class="flex items-center gap-3 text-ink-100">
-                <span class="grid size-6 place-items-center rounded-full bg-accent-soft text-accent"><PhCheck :size="13" weight="bold" /></span>
+                <span class="grid size-6 place-items-center rounded-full border border-accent/25 bg-accent-soft text-accent"><PhCheck :size="13" weight="bold" /></span>
                 {{ p }}
               </li>
             </ul>
@@ -141,12 +173,12 @@ const bento: Record<string, string> = {
             v-for="(d, i) in digital"
             :key="d.slug"
             :to="`/${d.slug}`"
-            class="panel group flex flex-col p-6 transition-colors hover:border-accent/50 md:p-8"
+            class="panel panel-lift group flex flex-col p-6 md:p-8"
             :class="bento[d.slug]"
             v-reveal="i * 80"
           >
             <div class="flex items-start justify-between gap-4">
-              <span class="grid size-11 place-items-center rounded-xl bg-accent-soft text-accent"><component :is="d.icon" :size="22" /></span>
+              <span class="icon-badge size-11"><component :is="d.icon" :size="22" /></span>
               <PhArrowUpRight :size="20" class="text-ink-500 transition-[color,translate] duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-accent" />
             </div>
             <h3 class="mt-auto pt-10 font-display text-2xl font-semibold tracking-tight text-ink-50" :class="d.slug === 'website-creation' && 'md:text-4xl'">{{ d.label }}</h3>
@@ -164,7 +196,7 @@ const bento: Record<string, string> = {
 
     <section v-bind="sceneAttrs({ morph: 3, x: 0, y: -1, z: 6.5, tilt: 0.55 })" class="relative flex min-h-[110dvh] items-center py-24 md:py-36">
       <div class="shell">
-        <ScrambleText text="Why ARX Fintech" tag="p" class="eyebrow" />
+        <ScrambleText text="Why ARX Fintech" tag="p" class="eyebrow eyebrow-pill" />
         <ScrollWords
           text="We are your *technology partner*, not just a vendor. We build long-term relationships on trust, technology and *performance*."
           class="mt-8 max-w-5xl font-display text-4xl leading-[1.08] font-semibold tracking-tight text-ink-50 md:text-6xl lg:text-7xl"
@@ -174,9 +206,9 @@ const bento: Record<string, string> = {
 
     <section v-bind="sceneAttrs({ morph: 3, x: 1.6, y: -0.6, z: 8, tilt: 0.6 })" class="relative py-24 md:py-32">
       <div class="shell">
-        <ul class="max-w-2xl divide-y divide-white/8 border-y border-white/8">
-          <li v-for="(r, i) in reasons" :key="r" class="flex items-center gap-5 py-5 text-lg text-ink-100" v-reveal="i * 50">
-            <span class="font-mono text-xs text-accent">{{ String(i + 1).padStart(2, '0') }}</span>
+        <ul class="panel max-w-2xl divide-y divide-white/10 px-6 md:px-8">
+          <li v-for="(r, i) in reasons" :key="r" class="flex items-center gap-4 py-5 text-lg text-ink-100" v-reveal="i * 50">
+            <span class="grid size-7 shrink-0 place-items-center rounded-full border border-accent/25 bg-accent-soft font-mono text-xs text-accent">{{ String(i + 1).padStart(2, '0') }}</span>
             {{ r }}
           </li>
         </ul>

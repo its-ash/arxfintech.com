@@ -93,7 +93,9 @@ export const site = {
   url: 'https://arxfintech.com',
   title: 'ARX Fintech | Brokerage setup and trading technology',
   description:
-    'ARX Fintech sets up offshore and regulated brokerages and delivers the trading platform, liquidity bridge, copy trading, MAM, website, email and phone numbers they need.',
+    'Launch an offshore or regulated brokerage with ARX Fintech. White-label trading platform, liquidity bridge, copy trading, MAM, website and dealing support.',
+  ogImage: 'https://arxfintech.com/og-image.jpg',
+  ogImageAlt: 'ARX Fintech: Launch your brokerage with one partner. Offshore and regulated setup, trading platform, liquidity bridge and dealing desk infrastructure.',
 }
 
 export const company = {

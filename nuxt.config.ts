@@ -23,7 +23,7 @@ export default defineNuxtConfig({
     head: {
       htmlAttrs: { lang: 'en' },
       meta: [
-        { name: 'theme-color', content: '#111111' },
+        { name: 'theme-color', content: '#0c0d12' },
         { name: 'color-scheme', content: 'dark' },
       ],
       link: [

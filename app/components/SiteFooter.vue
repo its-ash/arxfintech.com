@@ -23,11 +23,11 @@ const toTop = () => ($lenis ? $lenis.scrollTo(0) : window.scrollTo({ top: 0, beh
 </script>
 
 <template>
-  <footer class="relative pt-8 pb-6 md:pt-12">
+  <footer class="relative pt-8 pb-24 md:pt-12 md:pb-6">
     <div class="shell grid gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
       <section
         aria-label="ARX Fintech"
-        class="panel flex flex-col bg-[linear-gradient(150deg,rgb(214_251_97/.1),transparent_55%)] p-6 sm:col-span-2 md:p-8 lg:row-span-2"
+        class="panel flex flex-col bg-[linear-gradient(150deg,rgb(214_251_97/.13),rgb(0_238_255/.05)_34%,transparent_62%)] p-6 sm:col-span-2 md:p-8 lg:row-span-2"
       >
         <NuxtLink to="/" class="inline-flex self-start" aria-label="ARX Fintech home">
           <BrandLogo class="h-11 md:h-12" />
@@ -87,7 +87,7 @@ const toTop = () => ($lenis ? $lenis.scrollTo(0) : window.scrollTo({ top: 0, beh
 
       <section aria-label="Company registration" class="panel flex flex-col gap-5 p-6 sm:col-span-2 md:flex-row md:items-start md:gap-8 md:p-8 lg:col-span-3">
         <div class="flex shrink-0 items-center gap-3">
-          <span class="grid size-11 place-items-center rounded-xl bg-accent-soft text-accent"><PhSealCheck :size="22" /></span>
+          <span class="icon-badge size-11"><PhSealCheck :size="22" /></span>
           <div>
             <p class="eyebrow !text-ink-500">DET Trade License</p>
             <p class="mt-1 font-mono text-lg text-accent">{{ company.license }}</p>
